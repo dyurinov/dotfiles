@@ -2,33 +2,32 @@
 
 Personal Linux devbox setup: custom Helix, native TypeScript server, tmux, and Git ignores.
 
-Inside the devbox, with Git credentials that can read all three private repositories:
+Inside the devbox (both repositories are public):
 
 ```sh
 coder dotfiles https://github.com/dyurinov/dotfiles.git
 ```
 
 Repeat the command to pull updates. Coder runs `install.sh`, which builds the pinned
-forks in `forks.env`, then links configuration and `~/.local/bin/{hx,tsgo}`. First
-installation downloads dependencies and compiles; completed builds are reused.
-Requires Git, Rust 1.90+, Go, a C/C++ compiler, tmux, and zsh. The webapp devbox has
-these build tools. Go 1.26.4 is downloaded automatically when needed. No sudo.
+Helix fork and installs official native TypeScript from npm, then links configuration
+and `~/.local/bin/{hx,tsgo}`. Versions are pinned in `versions.env`; completed
+installations are reused. Requires Git, Rust 1.90+, Node 16.20+ with npm, a C/C++
+compiler, tmux, and zsh. The webapp devbox has these tools. No sudo.
 Ensure `~/.local/bin` is on PATH (already configured on the webapp devbox).
 
 - [Helix](https://github.com/dyurinov/helix): your editor changes, including Markdown
   reading mode, file explorer, and LSP tuning. Space+m toggles reading mode; Space+E
   opens the explorer. Clipboard uses tmux. Builds the 19 grammars listed in
   `languages.toml`; edit that list before the first build if you need more.
-- [TypeScript native](https://github.com/dyurinov/typescript-go): `helix-performance`
-  preserves the development checkout. The pinned `devbox-release-37` branch contains
-  the exact source archive used by your installed `7.0.2-helix.20260930.37`, rather
-  than newer experiments. Linux binaries are built locally with the original PGO
-  profile; Mac performance measurements do not establish Linux performance.
+- [Official TypeScript](https://github.com/microsoft/TypeScript): stock 7.0.2 native
+  compiler/LSP from npm. `tsgo` is a local alias for its `tsc` executable and accepts
+  `--lsp --stdio`. Your private TypeScript fork is kept separate from this setup.
 - tmux: Ctrl+b, red/yellow theme, vi copy mode, SSH clipboard support, no plugins.
 
-Tools live in `~/.local/share/devbox-tools/<tool>/<commit>/`; source/build caches
-live in `~/.cache/devbox-dotfiles/`. To update a tool, push its source and change
-its commit in `forks.env`. Old builds remain available for rollback. Optional
+Tools live in `~/.local/share/devbox-tools/<tool>/<commit-or-version>/`; Helix's
+source/build cache lives in `~/.cache/devbox-dotfiles/`. To update, change the
+Helix commit or TypeScript version in `versions.env`, push, and run Coder again.
+Old builds remain available for rollback. Optional
 language tools are `uv` with project-accessible Pyright/Ruff, and `taplo`.
 
 Existing paths are moved to `~/.local/state/devbox-dotfiles/backups/<timestamp>-<pid>/`

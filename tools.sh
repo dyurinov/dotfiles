@@ -2,8 +2,8 @@
 set -o errexit -o nounset -o pipefail
 # Sourced by install.sh; its backup/link functions also handle the executables.
 : "${repo_dir:?}" "${target_dir:?}" "${dry_run:?}"
-# shellcheck source=forks.env
-source "$repo_dir/forks.env"
+# shellcheck source=versions.env
+source "$repo_dir/versions.env"
 
 fetch_source() {
     local repository="$1" revision="$2" source_dir="$3"
@@ -24,17 +24,17 @@ install_tools() {
     local tools_dir="$target_dir/.local/share/devbox-tools"
     local cache_dir="$target_dir/.cache/devbox-dotfiles"
     local helix_dir="$tools_dir/helix/$HELIX_REV"
-    local tsgo_dir="$tools_dir/tsgo/$TSGO_REV"
+    local tsgo_dir="$tools_dir/tsgo/$TYPESCRIPT_VERSION"
     local dependency source_dir
 
     if "$dry_run"; then
-        printf 'Would build/reuse Helix %s and tsgo %s (%s).\n' "$HELIX_REV" "$TSGO_VERSION" "$TSGO_REV"
+        printf 'Would build/reuse Helix %s and install/reuse official TypeScript %s.\n' "$HELIX_REV" "$TYPESCRIPT_VERSION"
     else
         if [ "$(uname -s)" != Linux ]; then
             printf 'Tool builds require Linux. Use DOTFILES_SKIP_TOOLS=1 for config-only tests.\n' >&2
             exit 1
         fi
-        for dependency in git cargo go cc c++; do
+        for dependency in git cargo node npm cc c++; do
             if ! command -v "$dependency" >/dev/null 2>&1; then
                 printf 'Missing build dependency: %s\n' "$dependency" >&2
                 exit 1
@@ -42,11 +42,11 @@ install_tools() {
         done
 
         if [ ! -f "$tsgo_dir/.complete" ]; then
-            printf 'Building tsgo %s from %s\n' "$TSGO_VERSION" "$TSGO_REV"
-            source_dir="$cache_dir/tsgo-$TSGO_REV"
-            fetch_source "$TSGO_REPO" "$TSGO_REV" "$source_dir"
-            mkdir -p -- "$tsgo_dir/bin"
-            bash "$source_dir/helix-local/build.sh" "$TSGO_VERSION" "$tsgo_dir/bin/tsgo"
+            printf 'Installing official TypeScript %s\n' "$TYPESCRIPT_VERSION"
+            mkdir -p -- "$tsgo_dir"
+            npm install --prefix "$tsgo_dir" --save-exact --no-audit --no-fund \
+                --registry=https://registry.npmjs.org "typescript@$TYPESCRIPT_VERSION"
+            "$tsgo_dir/node_modules/.bin/tsc" --version
             touch "$tsgo_dir/.complete"
         fi
 
@@ -72,5 +72,6 @@ install_tools() {
     fi
 
     install_link .local/bin/hx "$helix_dir/bin/hx"
-    install_link .local/bin/tsgo "$tsgo_dir/bin/tsgo"
+    # Keep Helix's command portable; the official native CLI is now named tsc.
+    install_link .local/bin/tsgo "$tsgo_dir/node_modules/.bin/tsc"
 }
