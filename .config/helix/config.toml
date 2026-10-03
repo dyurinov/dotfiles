@@ -1,6 +1,7 @@
 theme = "onedark"
 
 [editor]
+markdown-reading-mode = false
 line-number = "relative"
 mouse = false
 clipboard-provider = "tmux"
@@ -21,5 +22,6 @@ select = "underline"
 hidden = false
 
 [keys.normal.space]
+m = "markdown_reading_mode"
 "." = "no_op"
-E = "file_picker_in_current_directory"
+E = "file_explorer_in_current_buffer_directory"

@@ -27,7 +27,7 @@ backup_dir="$target_dir/.local/state/devbox-dotfiles/backups/$(date -u +%Y%m%dT%
 
 install_link() {
     local relative_path="$1"
-    local source_path="$repo_dir/$relative_path"
+    local source_path="${2:-$repo_dir/$relative_path}"
     local target_path="$target_dir/$relative_path"
 
     if [ -L "$target_path" ] && [ "$(readlink "$target_path")" = "$source_path" ]; then
@@ -48,6 +48,13 @@ install_link() {
     ln -s -- "$source_path" "$target_path"
     printf 'Installed: %s\n' "$relative_path"
 }
+
+# Build before switching configuration to settings that require the custom editor.
+if [ "${DOTFILES_SKIP_TOOLS:-0}" != 1 ]; then
+    # shellcheck source=tools.sh
+    source "$repo_dir/tools.sh"
+    install_tools
+fi
 
 install_link .config/helix
 install_link .config/git/ignore
