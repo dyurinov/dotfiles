@@ -1,0 +1,50 @@
+[language-server.tsgo]
+command = "tsgo"
+args = ["--lsp", "--stdio"]
+timeout = 120
+environment = { GOMEMLIMIT = "11GiB", GOMAXPROCS = "6" }
+
+[language-server.pyright]
+command = "uv"
+args = ["run", "pyright-langserver", "--stdio"]
+
+[[language]]
+name = "python"
+shebangs = ["uv"]
+language-servers = ["pyright"]
+indent = { tab-width = 4, unit = "    " }
+roots = [".venv", "pyproject.toml", "setup.py", "poetry.lock", "pyrightconfig.json"]
+auto-format = false
+formatter = { command = "uv", args = ["run", "ruff", "format", "-"] }
+
+[language-server.taplo.config]
+root_dir = [".git", "*.toml"]
+
+[[language]]
+name = "toml"
+indent = { tab-width = 4, unit = "    " }
+
+[[language]]
+name = "markdown"
+file-types = [
+    "MD", "md", "livemd", "markdown", "mdx", "mkd", "mkdn", "mdwn", "mdown",
+    "markdn", "mdtxt", "mdtext", "workbook", { glob = "PULLREQ_EDITMSG" },
+]
+
+[[language]]
+name = "typescript"
+language-servers = ["tsgo"]
+indent = { tab-width = 4, unit = "    " }
+
+[[language]]
+name = "tsx"
+language-servers = ["tsgo"]
+indent = { tab-width = 4, unit = "    " }
+
+[[language]]
+name = "javascript"
+language-servers = ["tsgo"]
+
+[[language]]
+name = "jsx"
+language-servers = ["tsgo"]
