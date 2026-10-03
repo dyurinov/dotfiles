@@ -11,8 +11,9 @@ coder dotfiles https://github.com/dyurinov/dotfiles.git
 Repeat the command to pull updates. Coder runs `install.sh`, which builds the pinned
 Helix fork and installs official native TypeScript from npm, then links configuration
 and `~/.local/bin/{hx,tsgo}`. Versions are pinned in `versions.env`; completed
-installations are reused. Requires Git, Rust 1.90+, Node 16.20+ with npm, a C/C++
-compiler, tmux, and zsh. The webapp devbox has these tools. No sudo.
+installations are reused. Requires Git, mise (or Rust 1.90+), Node 16.20+ with npm,
+a C/C++ compiler, tmux, and zsh. The webapp devbox has these tools; mise installs
+the pinned Rust toolchain when needed. No sudo.
 Ensure `~/.local/bin` is on PATH (already configured on the webapp devbox).
 
 - [Helix](https://github.com/dyurinov/helix): your editor changes, including Markdown

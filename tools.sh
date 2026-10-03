@@ -26,6 +26,7 @@ install_tools() {
     local helix_dir="$tools_dir/helix/$HELIX_REV"
     local tsgo_dir="$tools_dir/tsgo/$TYPESCRIPT_VERSION"
     local dependency source_dir
+    local -a cargo_command=(cargo)
 
     if "$dry_run"; then
         printf 'Would build/reuse Helix %s and install/reuse official TypeScript %s.\n' "$HELIX_REV" "$TYPESCRIPT_VERSION"
@@ -34,7 +35,13 @@ install_tools() {
             printf 'Tool builds require Linux. Use DOTFILES_SKIP_TOOLS=1 for config-only tests.\n' >&2
             exit 1
         fi
-        for dependency in git cargo node npm cc c++; do
+        if command -v mise >/dev/null 2>&1; then
+            cargo_command=(mise exec "rust@$RUST_VERSION" -- cargo)
+        elif ! command -v cargo >/dev/null 2>&1; then
+            printf 'Install mise or Rust %s before building Helix.\n' "$RUST_VERSION" >&2
+            exit 1
+        fi
+        for dependency in git node npm cc c++; do
             if ! command -v "$dependency" >/dev/null 2>&1; then
                 printf 'Missing build dependency: %s\n' "$dependency" >&2
                 exit 1
@@ -59,7 +66,7 @@ install_tools() {
                 cd -- "$source_dir"
                 # Build with the installed Rust toolchain and our grammar selection.
                 HELIX_DEFAULT_RUNTIME="$helix_dir/runtime" XDG_CONFIG_HOME="$repo_dir/.config" \
-                    cargo build --release --locked -p helix-term --jobs "${DOTFILES_BUILD_JOBS:-4}"
+                    "${cargo_command[@]}" build --release --locked -p helix-term --jobs "${DOTFILES_BUILD_JOBS:-4}"
             )
             cp -- "$source_dir/target/release/hx" "$helix_dir/bin/hx"
             cp -R -- "$source_dir/runtime/themes" "$source_dir/runtime/queries" "$helix_dir/runtime/"
