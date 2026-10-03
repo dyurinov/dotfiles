@@ -11,8 +11,8 @@ coder dotfiles https://github.com/dyurinov/dotfiles.git
 Repeat the command to pull updates. Coder runs `install.sh`, which builds the pinned
 forks in `forks.env`, then links configuration and `~/.local/bin/{hx,tsgo}`. First
 installation downloads dependencies and compiles; completed builds are reused.
-Requires Git, Rust/rustup, Go, a C/C++ compiler, tmux, and zsh. The webapp devbox has
-these build tools. Rust uses the fork's toolchain pin; Go uses 1.26.4. No sudo.
+Requires Git, Rust 1.90+, Go, a C/C++ compiler, tmux, and zsh. The webapp devbox has
+these build tools. Go 1.26.4 is downloaded automatically when needed. No sudo.
 Ensure `~/.local/bin` is on PATH (already configured on the webapp devbox).
 
 - [Helix](https://github.com/dyurinov/helix): your editor changes, including Markdown

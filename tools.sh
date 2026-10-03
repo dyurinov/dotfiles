@@ -34,7 +34,7 @@ install_tools() {
             printf 'Tool builds require Linux. Use DOTFILES_SKIP_TOOLS=1 for config-only tests.\n' >&2
             exit 1
         fi
-        for dependency in git cargo rustup go cc c++; do
+        for dependency in git cargo go cc c++; do
             if ! command -v "$dependency" >/dev/null 2>&1; then
                 printf 'Missing build dependency: %s\n' "$dependency" >&2
                 exit 1
@@ -57,7 +57,7 @@ install_tools() {
             mkdir -p -- "$helix_dir/bin" "$helix_dir/runtime"
             (
                 cd -- "$source_dir"
-                # Honor the fork's pinned Rust version and our grammar selection.
+                # Build with the installed Rust toolchain and our grammar selection.
                 HELIX_DEFAULT_RUNTIME="$helix_dir/runtime" XDG_CONFIG_HOME="$repo_dir/.config" \
                     cargo build --release --locked -p helix-term --jobs "${DOTFILES_BUILD_JOBS:-4}"
             )
