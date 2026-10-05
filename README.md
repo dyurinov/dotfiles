@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal Linux devbox setup: custom Helix, native TypeScript server, tmux, and Git ignores.
+Personal Linux devbox setup: custom Helix, native TypeScript server, tmux, shell aliases, and Git ignores.
 
 Inside the devbox (both repositories are public):
 
@@ -24,6 +24,10 @@ Ensure `~/.local/bin` is on PATH (already configured on the webapp devbox).
   compiler/LSP from npm. `tsgo` is a local alias for its `tsc` executable and accepts
   `--lsp --stdio`. Your private TypeScript fork is kept separate from this setup.
 - tmux: Ctrl+b, red/yellow theme, vi copy mode, SSH clipboard support, no plugins.
+- zsh: `cc` and `codex` bypass Codex approvals and sandboxing; `cc` also selects
+  the latest CLI version. `claude` uses `--allow-dangerously-skip-permissions`.
+  New shells load these aliases; run `source ~/.config/zsh/aliases.zsh` in an
+  existing shell after installation.
 
 Tools live in `~/.local/share/devbox-tools/<tool>/<commit-or-version>/`; Helix's
 source/build cache lives in `~/.cache/devbox-dotfiles/`. To update, change the
@@ -34,7 +38,8 @@ language tools are `uv` with project-accessible Pyright/Ruff, and `taplo`.
 Existing paths are moved to `~/.local/state/devbox-dotfiles/backups/<timestamp>-<pid>/`
 before linking. Correct links are unchanged on reruns; live tmux is reloaded.
 Restore by removing the new link and moving its backup back. Git identity,
-authentication, signing, and shell startup files are preserved. Git automatically
+authentication, signing, and existing shell settings are preserved; installation
+adds one guarded aliases source line to `.zshrc`. Git automatically
 uses `.config/git/ignore` unless `core.excludesFile` overrides it.
 
 Preview with `./install.sh --dry-run`. Test configuration without tool builds:

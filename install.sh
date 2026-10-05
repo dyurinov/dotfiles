@@ -59,6 +59,26 @@ fi
 install_link .config/helix
 install_link .config/git/ignore
 install_link .tmux.conf
+install_link .config/zsh/aliases.zsh
+
+# Keep the devbox's existing shell setup and load our aliases once.
+zshrc_path="$target_dir/.zshrc"
+# Expand HOME when zsh starts on the devbox, not during installation.
+# shellcheck disable=SC2016
+aliases_source='[[ -r "$HOME/.config/zsh/aliases.zsh" ]] && source "$HOME/.config/zsh/aliases.zsh"'
+if [ -f "$zshrc_path" ] && grep -Fxq -- "$aliases_source" "$zshrc_path"; then
+    printf 'Already installed: zsh aliases source\n'
+elif "$dry_run"; then
+    printf 'Would add aliases source to %s (backing up any existing file).\n' "$zshrc_path"
+else
+    if [ -e "$zshrc_path" ] || [ -L "$zshrc_path" ]; then
+        mkdir -p -- "$backup_dir"
+        cp -p -- "$zshrc_path" "$backup_dir/.zshrc"
+        printf 'Backup: %s\n' "$backup_dir/.zshrc"
+    fi
+    printf '\n# Devbox dotfiles aliases.\n%s\n' "$aliases_source" >>"$zshrc_path"
+    printf 'Installed: zsh aliases source\n'
+fi
 
 if ! "$dry_run" && [ -z "${DOTFILES_TARGET:-}" ] && command -v tmux >/dev/null 2>&1; then
     if tmux list-sessions >/dev/null 2>&1; then
