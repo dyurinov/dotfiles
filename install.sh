@@ -21,3 +21,9 @@ if ! grep -Fxqs -- "$hook_source" "$zshenv_path"; then
     printf '\n# T3 Code SSH launcher fix.\n%s\n' "$hook_source" >>"$zshenv_path"
 fi
 printf 'Installed T3 Code SSH launcher fix.\n'
+
+# T3 Code names the environment after the pretty hostname, which is sand000 on every devbox.
+if [ -z "${DOTFILES_TARGET:-}" ] && [ -n "${CODER_WORKSPACE_NAME:-}" ] && sudo -n true 2>/dev/null; then
+    sudo -n hostnamectl set-hostname --pretty "$CODER_WORKSPACE_NAME"
+    printf 'Named this devbox %s.\n' "$CODER_WORKSPACE_NAME"
+fi
