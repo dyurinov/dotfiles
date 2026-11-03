@@ -13,5 +13,8 @@ Inside the devbox:
 coder dotfiles https://github.com/dyurinov/dotfiles.git
 ```
 
+`bin/devboxes` (run on the Mac) creates or starts `dyurinov-1`, `dyurinov-2` and `dyurinov-3`
+with these dotfiles and checks the fix is installed on each.
+
 Then add the devbox in T3 Code under **Settings → Environments → Add environment → SSH**
 as `coder.<workspace>`.

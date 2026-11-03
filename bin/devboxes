@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Creates or starts my T3 Code devboxes with these dotfiles, then checks the T3 fix is installed.
+set -o errexit -o nounset -o pipefail
+
+names=(dyurinov-1 dyurinov-2 dyurinov-3)
+dotfiles_uri=git@github.com:dyurinov/dotfiles.git
+coder=${CODER_BIN:-coder}
+codez=$HOME/sandbox/asana
+
+status_of() {
+    "$coder" list --output json | jq -r --arg name "$1" '.[] | select(.name == $name) | .latest_build.status'
+}
+
+has_fix() {
+    # --wait=yes also waits for startup scripts, which is when Coder installs dotfiles.
+    "$coder" ssh --wait=yes "$1" -- test -L .config/zsh/t3-ssh.zsh
+}
+
+for name in "${names[@]}"; do
+    status=$(status_of "$name")
+    case $status in
+        '')
+            printf '%s: creating\n' "$name"
+            # z devbox create also sets up commit signing and SSH; BROWSER=true skips the dashboard tab.
+            (cd "$codez" && BROWSER=true asana2/asana/tools/zoe/bin/z devbox create -n "$name" \
+                --parameter "dotfiles_uri=$dotfiles_uri")
+            ;;
+        running | starting | pending) printf '%s: %s\n' "$name" "$status" ;;
+        *)
+            printf '%s: %s, starting\n' "$name" "$status"
+            "$coder" start --yes --parameter "dotfiles_uri=$dotfiles_uri" "$name"
+            ;;
+    esac
+done
+
+for name in "${names[@]}"; do
+    if ! has_fix "$name"; then
+        printf '%s: T3 fix missing, restarting with dotfiles\n' "$name"
+        "$coder" restart --yes --parameter "dotfiles_uri=$dotfiles_uri" "$name"
+        has_fix "$name" || { printf '%s: T3 fix still missing\n' "$name" >&2; exit 1; }
+    fi
+    printf '%s: ready, add it in T3 Code as coder.%s\n' "$name" "$name"
+done
