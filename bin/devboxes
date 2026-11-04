@@ -3,7 +3,7 @@
 set -o errexit -o nounset -o pipefail
 
 names=(dyurinov-1 dyurinov-2 dyurinov-3)
-dotfiles_uri=git@github.com:dyurinov/dotfiles.git
+dotfiles_uri=https://github.com/dyurinov/dotfiles.git
 coder=${CODER_BIN:-coder}
 codez=$HOME/sandbox/asana
 
@@ -13,7 +13,9 @@ status_of() {
 
 has_fix() {
     # --wait=yes also waits for startup scripts, which is when Coder installs dotfiles.
-    "$coder" ssh --wait=yes "$1" -- test -L .config/zsh/t3-ssh.zsh
+    # SSH commands start in the agent dir (/var/asana-config/asana), not $HOME; $HOME expands on the devbox.
+    # shellcheck disable=SC2016
+    "$coder" ssh --wait=yes "$1" -- 'test -L "$HOME/.config/zsh/t3-ssh.zsh"'
 }
 
 for name in "${names[@]}"; do
