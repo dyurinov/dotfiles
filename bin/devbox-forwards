@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Forwards a fixed 127.0.0.1 port to each devbox's T3 Code server, so T3 environment links keep a
+# stable address. T3 only accepts plain http links on loopback. Runs on the Mac and on a devbox.
+set -o errexit -o nounset -o pipefail
+
+names=(dyurinov-1 dyurinov-2 dyurinov-3)
+t3_port=3773
+coder=${CODER_BIN:-$(command -v coder || printf /var/lib/coder-agent/coder)}
+log_dir=${XDG_STATE_HOME:-$HOME/.local/state}/devbox-forwards
+mkdir -p "$log_dir"
+
+local_port() {
+    printf '%s' "$((13770 + ${1##*-}))"
+}
+
+is_listening() {
+    # bash's /dev/tcp needs neither lsof (macOS) nor ss (Linux).
+    (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
+}
+
+for name in "${names[@]}"; do
+    # A devbox reaches its own T3 server at 127.0.0.1:3773 already.
+    [ "$name" = "${CODER_WORKSPACE_NAME:-}" ] && continue
+    port=$(local_port "$name")
+    if ! is_listening "$port"; then
+        # --disable-autostart: a forward must not wake a stopped devbox and undo its auto-stop.
+        nohup "$coder" port-forward --disable-autostart --tcp "127.0.0.1:$port:$t3_port" "$name" \
+            >"$log_dir/$name.log" 2>&1 </dev/null &
+        disown
+        for _ in $(seq 20); do
+            is_listening "$port" && break
+            sleep 0.5
+        done
+    fi
+    if is_listening "$port"; then
+        printf '%s: T3 link address http://127.0.0.1:%s\n' "$name" "$port"
+    else
+        printf '%s: forward failed, see %s\n' "$name" "$log_dir/$name.log" >&2
+    fi
+done

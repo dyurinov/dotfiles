@@ -43,3 +43,5 @@ for name in "${names[@]}"; do
     fi
     printf '%s: ready, add it in T3 Code as coder.%s\n' "$name" "$name"
 done
+
+"$(dirname -- "${BASH_SOURCE[0]}")/devbox-forwards"
