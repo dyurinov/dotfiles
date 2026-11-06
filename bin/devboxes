@@ -3,7 +3,7 @@
 set -o errexit -o nounset -o pipefail
 
 names=(dyurinov-1 dyurinov-2 dyurinov-3)
-dotfiles_uri=https://github.com/dyurinov/dotfiles.git
+dotfiles_uri=git@github.com:dyurinov/dotfiles.git
 coder=${CODER_BIN:-coder}
 codez=$HOME/sandbox/asana
 
@@ -35,12 +35,56 @@ for name in "${names[@]}"; do
     esac
 done
 
+# Prints each of claude and codex that has no subscription login. Reads the login files instead of
+# asking the tools: the devbox's codex wrapper logs in with the shared API key when it finds none.
+login_check='
+import json, pathlib
+home = pathlib.Path.home()
+def read(path):
+    try:
+        return json.loads((home / path).read_text())
+    except (OSError, ValueError):
+        return {}
+if not read(".claude.json").get("oauthAccount"):
+    print("claude")
+if read(".codex/auth.json").get("auth_mode") != "chatgpt":
+    print("codex")
+'
+
+missing_logins() {
+    printf '%s' "$login_check" | "$coder" ssh "$1" -- python3 -
+}
+
+login_command() {
+    case $2 in
+        claude) printf 'ssh -t coder.%s claude auth login' "$1" ;;
+        codex) printf 'ssh -t coder.%s codex login --device-auth' "$1" ;;
+    esac
+}
+
+check_logins() {
+    local name=$1 tool command answer
+    for tool in $(missing_logins "$name"); do
+        command=$(login_command "$name" "$tool")
+        printf '%s: %s is not logged in\n' "$name" "$tool"
+        if [ -t 0 ]; then
+            read -r -p "  Log in now with \`$command\`? [Y/n] " answer
+            if [ "${answer:-y}" != n ] && [ "${answer:-y}" != N ]; then
+                $command || printf '%s: %s login failed\n' "$name" "$tool" >&2
+            fi
+        else
+            printf '  Log in with: %s\n' "$command"
+        fi
+    done
+}
+
 for name in "${names[@]}"; do
     if ! has_fix "$name"; then
         printf '%s: T3 fix missing, restarting with dotfiles\n' "$name"
         "$coder" restart --yes --parameter "dotfiles_uri=$dotfiles_uri" "$name"
         has_fix "$name" || { printf '%s: T3 fix still missing\n' "$name" >&2; exit 1; }
     fi
+    check_logins "$name"
     printf '%s: ready, add it in T3 Code as coder.%s\n' "$name" "$name"
 done
 
